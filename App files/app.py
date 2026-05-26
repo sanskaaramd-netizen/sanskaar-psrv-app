@@ -8,16 +8,8 @@ from psrv_generator import generate_psrv
 
 st.title("PSRV One-Click Generator")
 
-invoice_file = st.file_uploader(
-    "Upload Invoice PDF",
-    type=["pdf"]
-)
-
-eway_file = st.file_uploader(
-    "Upload E-Way Bill PDF",
-    type=["pdf"]
-)
-
+invoice_file = st.file_uploader("Upload Invoice PDF", type=["pdf"])
+eway_file = st.file_uploader("Upload E-Way Bill PDF", type=["pdf"])
 
 if st.button("Generate PSRV"):
 
@@ -25,11 +17,11 @@ if st.button("Generate PSRV"):
         st.error("Please upload both Invoice PDF and E-Way Bill PDF.")
 
     else:
-        # Create folders if they don't exist
+        base_dir = os.getcwd()
+
         os.makedirs("INVOICES", exist_ok=True)
         os.makedirs("OUTPUT", exist_ok=True)
 
-        # Save uploaded files
         invoice_path = os.path.join("INVOICES", invoice_file.name)
         eway_path = os.path.join("INVOICES", eway_file.name)
 
@@ -39,24 +31,41 @@ if st.button("Generate PSRV"):
         with open(eway_path, "wb") as f:
             f.write(eway_file.getbuffer())
 
-        # Extract data from PDFs
         invoice_data = extract_invoice_data(invoice_path)
         eway_data = extract_eway_data(eway_path)
 
-        # Output file path
         output_path = os.path.join("OUTPUT", "Generated_PSRV.xlsx")
 
-        # Generate PSRV
+        possible_templates = [
+            os.path.join(base_dir, "TEMPLATES", "PSRV Format.xlsx"),
+            os.path.join(base_dir, "templates", "PSRV Format.xlsx"),
+            os.path.join(base_dir, "App files", "TEMPLATES", "PSRV Format.xlsx"),
+            os.path.join(base_dir, "App files", "templates", "PSRV Format.xlsx"),
+        ]
+
+        template_path = None
+
+        for path in possible_templates:
+            if os.path.exists(path):
+                template_path = path
+                break
+
+        if template_path is None:
+            st.error("PSRV template file not found.")
+            st.write("Checked these locations:")
+            for path in possible_templates:
+                st.code(path)
+            st.stop()
+
         generate_psrv(
             invoice_data=invoice_data,
             eway_data=eway_data,
-            template_path="templates/PSRV Format.xlsx",
+            template_path=template_path,
             output_path=output_path
         )
 
         st.success("PSRV Generated Successfully!")
 
-        # Download button
         with open(output_path, "rb") as file:
             st.download_button(
                 label="Download PSRV",
