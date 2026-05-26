@@ -39,10 +39,16 @@ if st.button("Generate PSRV"):
 
         output_path = os.path.join(output_dir, "Generated_PSRV.xlsx")
 
+        template_path = os.path.join(
+            base_dir,
+            "TEMPLATES",
+            "PSRV Format.xlsx"
+        )
+
         generate_psrv(
             invoice_data=invoice_data,
             eway_data=eway_data,
-            template_path="templates/PSRV Format.xlsx",
+            template_path=template_path,
             output_path=output_path
         )
 
