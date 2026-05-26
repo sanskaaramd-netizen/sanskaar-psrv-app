@@ -22,25 +22,16 @@ eway_file = st.file_uploader(
 if st.button("Generate PSRV"):
 
     if not invoice_file or not eway_file:
-
-        st.error(
-            "Please upload both PDFs."
-        )
+        st.error("Please upload both Invoice PDF and E-Way Bill PDF.")
 
     else:
+        # Create folders if they don't exist
+        os.makedirs("INVOICES", exist_ok=True)
+        os.makedirs("OUTPUT", exist_ok=True)
 
-        # ==========================
-        # Save Uploaded Files
-        # ==========================
-        invoice_path = os.path.join(
-            "INVOICES",
-            invoice_file.name
-        )
-
-        eway_path = os.path.join(
-            "INVOICES",
-            eway_file.name
-        )
+        # Save uploaded files
+        invoice_path = os.path.join("INVOICES", invoice_file.name)
+        eway_path = os.path.join("INVOICES", eway_file.name)
 
         with open(invoice_path, "wb") as f:
             f.write(invoice_file.getbuffer())
@@ -48,28 +39,14 @@ if st.button("Generate PSRV"):
         with open(eway_path, "wb") as f:
             f.write(eway_file.getbuffer())
 
-        # ==========================
-        # Extract Data
-        # ==========================
-        invoice_data = extract_invoice_data(
-            invoice_path
-        )
+        # Extract data from PDFs
+        invoice_data = extract_invoice_data(invoice_path)
+        eway_data = extract_eway_data(eway_path)
 
-        eway_data = extract_eway_data(
-            eway_path
-        )
+        # Output file path
+        output_path = os.path.join("OUTPUT", "Generated_PSRV.xlsx")
 
-        # ==========================
-        # Output File
-        # ==========================
-        output_path = os.path.join(
-            "OUTPUT",
-            "Generated_PSRV.xlsx"
-        )
-
-        # ==========================
         # Generate PSRV
-        # ==========================
         generate_psrv(
             invoice_data=invoice_data,
             eway_data=eway_data,
@@ -77,15 +54,10 @@ if st.button("Generate PSRV"):
             output_path=output_path
         )
 
-        st.success(
-            "PSRV Generated Successfully!"
-        )
+        st.success("PSRV Generated Successfully!")
 
-        # ==========================
-        # Download Button
-        # ==========================
+        # Download button
         with open(output_path, "rb") as file:
-
             st.download_button(
                 label="Download PSRV",
                 data=file,
